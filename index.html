@@ -26,11 +26,16 @@
         @keyframes sparkle { 0% { opacity: 0.3; transform: translateY(0px); } 100% { opacity: 0.8; transform: translateY(-10px); } }
         
         .container { display: grid; grid-template-columns: 320px 1fr; height: 100vh; position: relative; z-index: 1; }
-        
+
         .sidebar {
             background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.1); padding: 20px;
             display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        .menu-btn {
+            display: none; background: none; border: none; color: white; font-size: 24px;
+            cursor: pointer; margin-right: 15px;
         }
         
         .logo {
@@ -231,7 +236,13 @@
         
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
+            .sidebar {
+                position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+                border-right: none; border-top: none; transition: left 0.3s ease;
+                z-index: 2;
+            }
+            .sidebar.open { left: 0; }
+            .menu-btn { display: block; }
             .main-area { grid-column: 1; }
         }
     </style>
@@ -264,6 +275,7 @@
         </div>
         <div class="main-area">
             <div class="chat-header">
+                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
                 <div class="chat-title" id="chat-title">AI Pantheon</div>
                 <div class="chat-info">
                     <div class="status-indicator"></div>
@@ -544,6 +556,11 @@
             modelInfo.textContent = select.options[select.selectedIndex].text;
             modelInfo.style.color = '#667eea';
             setTimeout(() => modelInfo.style.color = '', 1000);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
         }
 
         document.addEventListener('DOMContentLoaded', function() {
