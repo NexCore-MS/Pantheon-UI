@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pantheon</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: #ffffff; height: 100vh; overflow: hidden; position: relative;
+        }
+        
+        body::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.1), transparent),
+                        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.05), transparent),
+                        radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.08), transparent),
+                        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.03), transparent);
+            background-repeat: repeat; background-size: 150px 100px;
+            animation: sparkle 8s ease-in-out infinite alternate; pointer-events: none;
+        }
+        
+        @keyframes sparkle { 0% { opacity: 0.3; transform: translateY(0px); } 100% { opacity: 0.8; transform: translateY(-10px); } }
+        
+        .container { display: grid; grid-template-columns: 320px 1fr; height: 100vh; position: relative; z-index: 1; }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1); padding: 20px;
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+        
+        .logo {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 30px;
+            padding: 15px 20px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header-controls {
+            display: flex; align-items: center; gap: 10px;
+        }
+        
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px; padding: 6px; display: flex; align-items: center;
+            cursor: pointer; transition: all 0.3s ease; width: 50px; height: 28px;
+            position: relative;
+        }
+        
+        .theme-toggle::before {
+            content: '🌙'; position: absolute; left: 6px; font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle.light::before {
+            content: '☀️'; left: 28px;
+        }
+        
+        .theme-toggle-slider {
+            width: 18px; height: 18px; background: white;
+            border-radius: 50%; transition: all 0.3s ease;
+            transform: translateX(0);
+        }
+        
+        .theme-toggle.light .theme-toggle-slider {
+            transform: translateX(22px);
+        }
+        
+        .logo-icon {
+            width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 16px;
+        }
+        
+        .logo-text {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .new-chat-btn {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2); color: white;
+            padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+            cursor: pointer; margin-bottom: 20px; transition: all 0.3s ease;
+        }
+        
+        .new-chat-btn:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+            transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .model-selector { margin-bottom: 25px; }
+        .model-selector label {
+            display: block; font-size: 12px; font-weight: 500;
+            color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        
+        .model-select {
+            width: 100%; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;
+            padding: 10px 15px; color: white; font-size: 14px; cursor: pointer;
+        }
+        
+        .conversations-section { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+        .conversations-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        .header-buttons {
+            display: flex; gap: 8px;
+        }
+        .conversations-title { font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; }
+        
+        .clear-all-btn {
+            background: none; border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6); padding: 6px 12px; border-radius: 8px;
+            font-size: 12px; cursor: pointer; transition: all 0.3s ease;
+        }
+        
+        .conversations-list { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .conversations-list::-webkit-scrollbar { width: 6px; }
+        .conversations-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+        
+        .search-container {
+            margin-bottom: 15px;
+        }
+        
+        .search-input {
+            width: 100%; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;
+            padding: 8px 12px; color: white; font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none; border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        body.light-theme .search-input {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1e293b;
+        }
+        
+        body.light-theme .search-input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .conversation-item {
+            padding: 12px 16px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer; transition: all 0.3s ease; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        
+        .conversation-item:hover {
+            background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(4px);
+        }
+        
+        .conversation-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+        
+        .conversation-info { flex: 1; min-width: 0; }
+        .conversation-title { font-size: 14px; font-weight: 500; color: white; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conversation-time { font-size: 12px; color: rgba(255, 255, 255, 0.5); }
+        
+        .delete-btn {
+            opacity: 0; background: none; border: none; color: rgba(255, 59, 48, 0.7);
+            cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.3s ease; font-size: 16px;
+        }
+        .conversation-item:hover .delete-btn { opacity: 1; }
+        
+        .message-actions {
+            position: absolute; top: 8px; right: 8px; opacity: 0;
+            display: flex; gap: 5px; transition: all 0.3s ease;
+        }
+        
+        .message-timestamp {
+            position: absolute; bottom: 4px; right: 8px; opacity: 0;
+            font-size: 11px; color: rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease; pointer-events: none;
+        }
+        
+        .message:hover .message-timestamp { opacity: 1; }
+        
+        body.light-theme .message-timestamp {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .shortcuts-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            display: none; z-index: 10000; align-items: center; justify-content: center;
+        }
+        
+        .shortcuts-panel {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px; padding: 30px; max-width: 400px; width: 90%;
+            backdrop-filter: blur(20px); color: white;
+        }
+        
+        .shortcuts-title {
+            font-size: 20px; font-weight: 600; margin-bottom: 20px;
+            text-align: center; color: white;
+        }
+        
+        .shortcut-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .shortcut-item:last-child { border-bottom: none; }
+        
+        .shortcut-key {
+            background: rgba(255, 255, 255, 0.2); padding: 4px 8px;
+            border-radius: 6px; font-family: monospace; font-size: 12px;
+        }
+        
+        .close-shortcuts {
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: none; color: rgba(255, 255, 255, 0.7);
+            font-size: 20px; cursor: pointer;
+        }
+        
+        .message:hover .message-actions { opacity: 1; }
+        
+        .action-btn {
+            background: rgba(0, 0, 0, 0.2); border: none; border-radius: 4px;
+            padding: 4px 8px; color: rgba(255, 255, 255, 0.7);
+            cursor: pointer; font-size: 12px; transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 0, 0, 0.4); color: white;
+        }
+        
+        .main-area {
+            display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.02);
+            position: relative; overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 20px 30px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex;
+            justify-content: space-between; align-items: center; position: relative; z-index: 1;
+        }
+        
+        .chat-title { font-size: 18px; font-weight: 600; color: white; }
+        .chat-info { display: flex; align-items: center; gap: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.6); }
+        
+        .sync-status {
+            padding: 4px 8px; border-radius: 6px; font-size: 12px;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .sync-status.synced { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); }
+        .sync-status.pending { background: rgba(251, 191, 36, 0.2); border-color: rgba(251, 191, 36, 0.4); }
+        .sync-status.failed { background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); }
+        .sync-status.offline { background: rgba(156, 163, 175, 0.2); border-color: rgba(156, 163, 175, 0.4); }
+        
+        .status-indicator {
+            width: 8px; height: 8px; background: #00ff88; border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        .messages-container {
+            flex: 1; overflow-y: auto; padding: 30px; position: relative; z-index: 1;
+        }
+        .messages-container::-webkit-scrollbar { width: 8px; }
+        .messages-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        
+        .message { margin-bottom: 25px; animation: fadeInUp 0.5s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .message.user { display: flex; justify-content: flex-end; }
+        .message.ai { display: flex; justify-content: flex-start; }
+        
+        .message-content {
+            max-width: 70%; padding: 16px 20px; border-radius: 18px;
+            position: relative; backdrop-filter: blur(20px);
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2); color: white;
+        }
+        
+        .message.ai .message-content {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; opacity: 0.6;
+        }
+        
+        .empty-state-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; margin-bottom: 20px;
+        }
+        
+        .empty-state h3 { font-size: 24px; margin-bottom: 12px; color: white; }
+        .empty-state p { font-size: 16px; color: rgba(255, 255, 255, 0.6); max-width: 400px; line-height: 1.6; }
+        
+        .input-area {
+            padding: 20px 30px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1); position: relative; z-index: 1;
+        }
+        
+        .input-container { display: flex; gap: 15px; align-items: flex-end; max-width: 1000px; margin: 0 auto; flex-direction: column; }
+        
+        .input-info {
+            display: flex; justify-content: space-between; align-items: center; width: 100%;
+        }
+        
+        .char-count {
+            font-size: 12px; color: rgba(255, 255, 255, 0.5);
+            margin-right: 10px;
+        }
+        
+        body.light-theme .char-count {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .message-input {
+            width: 100%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px; padding: 15px 20px; color: white; font-size: 16px; resize: none;
+            min-height: 50px; max-height: 150px; font-family: inherit; backdrop-filter: blur(10px);
+            transition: all 0.3s ease; margin-bottom: 10px;
+        }
+        
+        .message-input:focus {
+            outline: none; border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.12); box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .message-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        
+        .send-btn {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.3s ease; font-size: 18px; color: white;
+        }
+        
+        .send-btn:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+            transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .typing-indicator {
+            display: flex; align-items: center; gap: 8px; padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px; max-width: 70%; backdrop-filter: blur(20px);
+        }
+        
+        .typing-dots { display: flex; gap: 4px; }
+        .typing-dot {
+            width: 8px; height: 8px; background: rgba(255, 255, 255, 0.6); border-radius: 50%;
+            animation: typing 1.5s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-10px); opacity: 1; } }
+        
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        
+        /* Light theme styles */
+        body.light-theme {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 75%, #64748b 100%);
+        }
+        
+        body.light-theme .sidebar {
+            background: rgba(255, 255, 255, 0.8);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .logo {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .logo-text {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        body.light-theme .new-chat-btn {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(147, 51, 234, 0.8) 100%);
+            color: white;
+        }
+        
+        body.light-theme .model-select {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1e293b;
+        }
+        
+        body.light-theme .conversation-item {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1e293b;
+        }
+        
+        body.light-theme .conversation-time {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        
+        body.light-theme .main-area {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        
+        body.light-theme .chat-header {
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .chat-title {
+            color: #1e293b;
+        }
+        
+        body.light-theme .chat-info {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        body.light-theme .message.ai .message-content {
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1e293b;
+        }
+        
+        body.light-theme .input-area {
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .message-input {
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            color: #1e293b;
+        }
+        
+        body.light-theme .message-input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        body.light-theme .theme-toggle {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .main-area { grid-column: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header-controls">
+                <div class="logo">
+                    <div class="logo-icon">AI</div>
+                    <div class="logo-text">Pantheon</div>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    <div class="theme-toggle-slider"></div>
+                </div>
+            </div>
+            <button class="new-chat-btn" onclick="startNewChat()">✨ New Conversation</button>
+            <div class="model-selector">
+                <label for="model-select">AI Model</label>
+                <select id="model-select" class="model-select" onchange="changeModel()">
+                    <option value="gpt-4">GPT-4 Turbo</option>
+                    <option value="claude-3">Claude 3 Opus</option>
+                    <option value="gemini">Gemini Ultra</option>
+                    <option value="llama">LLaMA 2 70B</option>
+                    <option value="palm">PaLM 2</option>
+                </select>
+            </div>
+            <div class="conversations-section">
+                <div class="conversations-header">
+                    <div class="conversations-title">Recent Chats</div>
+                    <div class="header-buttons">
+                        <button class="clear-all-btn" onclick="exportConversations()" title="Export conversations">💾</button>
+                        <button class="clear-all-btn" onclick="clearAllChats()">Clear All</button>
+                    </div>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search conversations..." oninput="searchConversations()">
+                </div>
+                <div class="conversations-list" id="conversations-list"></div>
+            </div>
+        </div>
+        <div class="main-area">
+            <div class="chat-header">
+                <div class="chat-title" id="chat-title">AI Pantheon</div>
+                <div class="chat-info">
+                    <div class="status-indicator"></div>
+                    <span>Online</span>
+                    <span id="model-info">GPT-4 Turbo</span>
+                    <span id="sync-status" class="sync-status offline">📱 Local</span>
+                </div>
+            </div>
+            <div class="messages-container" id="messages-container">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🤖</div>
+                    <h3>Welcome to AI Pantheon</h3>
+                    <p>Start a conversation with your AI assistant. Choose from multiple advanced models and experience the future of AI interaction.</p>
+                </div>
+            </div>
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea 
+                        class="message-input" 
+                        id="message-input" 
+                        placeholder="Ask me anything..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                        oninput="autoResize(); updateCharCount()"
+                    ></textarea>
+                    <div class="input-info">
+                        <span id="char-count" class="char-count">0</span>
+                        <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="shortcuts-overlay" class="shortcuts-overlay" onclick="hideShortcuts()">
+        <div class="shortcuts-panel" onclick="event.stopPropagation()">
+            <button class="close-shortcuts" onclick="hideShortcuts()">×</button>
+            <div class="shortcuts-title">Keyboard Shortcuts</div>
+            <div class="shortcut-item">
+                <span>Send message</span>
+                <span class="shortcut-key">Enter</span>
+            </div>
+            <div class="shortcut-item">
+                <span>New line</span>
+                <span class="shortcut-key">Shift + Enter</span>
+            </div>
+            <div class="shortcut-item">
+                <span>New conversation</span>
+                <span class="shortcut-key">Ctrl/Cmd + N</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Focus input</span>
+                <span class="shortcut-key">Ctrl/Cmd + /</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Show shortcuts</span>
+                <span class="shortcut-key">Ctrl/Cmd + ?</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Close overlay</span>
+                <span class="shortcut-key">Escape</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let conversations = [];
+        let currentChatId = null;
+        let messageId = 0;
+        let isLightTheme = false;
+        
+        // GitHub Database Configuration
+        const GITHUB_CONFIG = {
+            owner: '', // Your GitHub username - FILL THIS IN
+            repo: '', // Your repository name - FILL THIS IN
+            token: '', // Your personal access token - FILL THIS IN
+            filePath: 'data/conversations.json'
+        };
+        
+        let isOnline = navigator.onLine;
+        let pendingSync = false;
+
+        async function initSampleConversations() {
+            // Try to load from GitHub first, then localStorage, then samples
+            const githubLoaded = await loadFromGitHub();
+            
+            if (!githubLoaded) {
+                const savedConversations = localStorage.getItem('ai-pantheon-conversations');
+                if (savedConversations) {
+                    conversations = JSON.parse(savedConversations).map(conv => ({
+                        ...conv,
+                        timestamp: new Date(conv.timestamp)
+                    }));
+                } else {
+                const sampleConversations = [
+                    {
+                        id: 'chat-1',
+                        title: 'Python Development Help',
+                        timestamp: new Date(Date.now() - 1000 * 60 * 30),
+                        messages: [
+                            { id: 1, type: 'user', content: 'Can you help me with Python list comprehensions?', timestamp: new Date(Date.now() - 1000 * 60 * 25) },
+                            { id: 2, type: 'ai', content: 'Of course! List comprehensions are a concise way to create lists in Python. They follow the pattern: [expression for item in iterable if condition]. For example: squares = [x**2 for x in range(10)] creates a list of squares from 0 to 9.', timestamp: new Date(Date.now() - 1000 * 60 * 24) }
+                        ]
+                    },
+                    {
+                        id: 'chat-2',
+                        title: 'Machine Learning Concepts',
+                        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+                        messages: [
+                            { id: 1, type: 'user', content: 'Explain the difference between supervised and unsupervised learning', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 60 * 5) },
+                            { id: 2, type: 'ai', content: 'Great question! Supervised learning uses labeled data to train models that can make predictions on new, unseen data. Examples include classification and regression. Unsupervised learning finds patterns in data without labels, like clustering or dimensionality reduction.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) }
+                        ]
+                    },
+                    {
+                        id: 'chat-3',
+                        title: 'Creative Writing Tips',
+                        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
+                        messages: [
+                            { id: 1, type: 'user', content: 'How can I improve my creative writing?', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 + 1000 * 60 * 10) },
+                            { id: 2, type: 'ai', content: 'Here are some key tips for improving your creative writing: 1) Read widely in different genres, 2) Write regularly - even just 15 minutes daily, 3) Show don\'t tell - use vivid details and actions, 4) Develop strong characters with clear motivations, 5) Practice different narrative voices and perspectives.', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24) }
+                        ]
+                    }
+                ];
+                conversations = sampleConversations;
+                saveConversations();
+            }
+            
+            // Set initial sync status
+            if (!GITHUB_CONFIG.token || !GITHUB_CONFIG.owner || !GITHUB_CONFIG.repo) {
+                updateSyncStatus('offline');
+            } else if (pendingSync) {
+                updateSyncStatus('pending');
+            } else {
+                updateSyncStatus('synced');
+            }
+            
+            renderConversations();
+        }
+
+        function renderConversations() {
+            const conversationsList = document.getElementById('conversations-list');
+            conversationsList.innerHTML = '';
+            conversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = `conversation-item ${currentChatId === conv.id ? 'active' : ''}`;
+                item.onclick = () => loadConversation(conv.id);
+                const timeAgo = getTimeAgo(conv.timestamp);
+                item.innerHTML = `
+                    <div class="conversation-info">
+                        <div class="conversation-title" ondblclick="renameConversation(event, '${conv.id}')" title="Double-click to rename">${conv.title}</div>
+                        <div class="conversation-time">${timeAgo}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteConversation(event, '${conv.id}')" title="Delete conversation">×</button>
+                `;
+                conversationsList.appendChild(item);
+            });
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / (1000 * 60));
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+
+        function startNewChat() {
+            currentChatId = null;
+            document.getElementById('chat-title').textContent = 'New Conversation';
+            clearMessages();
+            renderConversations();
+        }
+
+        function loadConversation(chatId) {
+            currentChatId = chatId;
+            const conversation = conversations.find(c => c.id === chatId);
+            if (conversation) {
+                document.getElementById('chat-title').textContent = conversation.title;
+                renderMessages(conversation.messages);
+                renderConversations();
+            }
+        }
+
+        function deleteConversation(event, chatId) {
+            event.stopPropagation();
+            conversations = conversations.filter(c => c.id !== chatId);
+            if (currentChatId === chatId) startNewChat();
+            saveConversations();
+            renderConversations();
+        }
+
+        function clearAllChats() {
+            if (confirm('Are you sure you want to delete all conversations?')) {
+                conversations = [];
+                startNewChat();
+                saveConversations();
+                renderConversations();
+            }
+        }
+
+        function clearMessages() {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🤖</div>
+                    <h3>Start a New Conversation</h3>
+                    <p>Ask me anything and let's explore the possibilities together.</p>
+                </div>
+            `;
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+            
+            // Performance optimization: only render last 50 messages
+            const messagesToRender = messages.slice(-50);
+            
+            messagesToRender.forEach(message => {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${message.type}`;
+                const timestamp = message.timestamp ? formatTimestamp(new Date(message.timestamp)) : '';
+                messageEl.innerHTML = `
+                    <div class="message-content">
+                        ${message.content}
+                        <div class="message-actions">
+                            <button class="action-btn" onclick="copyMessage('${message.id}')" title="Copy message">📋</button>
+                            <button class="action-btn" onclick="editMessage('${message.id}')" title="Edit message">✏️</button>
+                            <button class="action-btn" onclick="deleteMessage('${message.id}')" title="Delete message">🗑️</button>
+                        </div>
+                        ${timestamp ? `<div class="message-timestamp">${timestamp}</div>` : ''}
+                    </div>
+                `;
+                container.appendChild(messageEl);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            if (!currentChatId) {
+                const newChatId = `chat-${Date.now()}`;
+                const title = message.length > 30 ? message.substring(0, 30) + '...' : message;
+                const newConversation = {
+                    id: newChatId,
+                    title: title,
+                    timestamp: new Date(),
+                    messages: []
+                };
+                conversations.unshift(newConversation);
+                currentChatId = newChatId;
+                document.getElementById('chat-title').textContent = title;
+            }
+
+            const currentConv = conversations.find(c => c.id === currentChatId);
+            currentConv.messages.push({
+                id: ++messageId,
+                type: 'user',
+                content: message,
+                timestamp: new Date()
+            });
+
+            input.value = '';
+            autoResize();
+            renderMessages(currentConv.messages);
+            saveConversations();
+            renderConversations();
+            showTypingIndicator();
+
+            setTimeout(() => {
+                hideTypingIndicator();
+                const aiResponses = [
+                    "I understand your question. Let me provide you with a comprehensive answer that addresses your specific needs.",
+                    "That's an interesting point! Here's what I think about this topic based on the latest information and best practices.",
+                    "Great question! I'd be happy to help you with that. Let me break this down into clear, actionable steps.",
+                    "I can definitely assist you with this. Based on your requirements, here's my recommendation...",
+                    "Thank you for that question. This is actually a fascinating area, and there are several important aspects to consider.",
+                    "Excellent! I love discussing this topic. Let me share some insights that might be helpful for your situation."
+                ];
+                const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+                currentConv.messages.push({
+                    id: ++messageId,
+                    type: 'ai',
+                    content: randomResponse,
+                    timestamp: new Date()
+                });
+                renderMessages(currentConv.messages);
+                saveConversations();
+                renderConversations();
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('messages-container');
+            const typingEl = document.createElement('div');
+            typingEl.className = 'message ai';
+            typingEl.id = 'typing-indicator';
+            typingEl.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <span style="margin-left: 8px; color: rgba(255,255,255,0.6); font-size: 14px;">AI is thinking...</span>
+                </div>
+            `;
+            container.appendChild(typingEl);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingEl = document.getElementById('typing-indicator');
+            if (typingEl) typingEl.remove();
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize() {
+            const textarea = document.getElementById('message-input');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+        }
+
+        function changeModel() {
+            const select = document.getElementById('model-select');
+            const modelInfo = document.getElementById('model-info');
+            modelInfo.textContent = select.options[select.selectedIndex].text;
+            modelInfo.style.color = '#667eea';
+            setTimeout(() => modelInfo.style.color = '', 1000);
+        }
+        
+        function toggleTheme() {
+            isLightTheme = !isLightTheme;
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            
+            if (isLightTheme) {
+                body.classList.add('light-theme');
+                toggle.classList.add('light');
+            } else {
+                body.classList.remove('light-theme');
+                toggle.classList.remove('light');
+            }
+            
+            localStorage.setItem('theme', isLightTheme ? 'light' : 'dark');
+        }
+        
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                isLightTheme = true;
+                document.body.classList.add('light-theme');
+                document.querySelector('.theme-toggle').classList.add('light');
+            }
+        }
+        
+        function saveConversations() {
+            // Always save to localStorage as backup
+            localStorage.setItem('ai-pantheon-conversations', JSON.stringify(conversations));
+            
+            // Also try to save to GitHub if configured and online
+            if (GITHUB_CONFIG.token && GITHUB_CONFIG.owner && GITHUB_CONFIG.repo && isOnline) {
+                saveToGitHub();
+            } else {
+                pendingSync = true;
+            }
+        }
+        
+        function copyMessage(messageId) {
+            const currentConv = conversations.find(c => c.id === currentChatId);
+            if (!currentConv) return;
+            
+            const message = currentConv.messages.find(m => m.id == messageId);
+            if (!message) return;
+            
+            navigator.clipboard.writeText(message.content).then(() => {
+                showToast('Message copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = message.content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('Message copied to clipboard!');
+            });
+        }
+        
+        function editMessage(messageId) {
+            const currentConv = conversations.find(c => c.id === currentChatId);
+            if (!currentConv) return;
+            
+            const message = currentConv.messages.find(m => m.id == messageId);
+            if (!message || message.type === 'ai') return;
+            
+            const newContent = prompt('Edit your message:', message.content);
+            if (newContent !== null && newContent.trim() !== '') {
+                message.content = newContent.trim();
+                renderMessages(currentConv.messages);
+                saveConversations();
+                showToast('Message updated!');
+            }
+        }
+        
+        function deleteMessage(messageId) {
+            const currentConv = conversations.find(c => c.id === currentChatId);
+            if (!currentConv) return;
+            
+            if (confirm('Are you sure you want to delete this message?')) {
+                currentConv.messages = currentConv.messages.filter(m => m.id != messageId);
+                renderMessages(currentConv.messages);
+                saveConversations();
+                showToast('Message deleted!');
+            }
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 10000;
+                background: rgba(0, 0, 0, 0.8); color: white; padding: 12px 20px;
+                border-radius: 8px; font-size: 14px; backdrop-filter: blur(10px);
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 2000);
+        }
+        
+        function searchConversations() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredConversations = conversations.filter(conv => 
+                conv.title.toLowerCase().includes(searchTerm) ||
+                conv.messages.some(msg => msg.content.toLowerCase().includes(searchTerm))
+            );
+            renderFilteredConversations(filteredConversations);
+        }
+        
+        function renderFilteredConversations(filteredConversations) {
+            const conversationsList = document.getElementById('conversations-list');
+            conversationsList.innerHTML = '';
+            filteredConversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = `conversation-item ${currentChatId === conv.id ? 'active' : ''}`;
+                item.onclick = () => loadConversation(conv.id);
+                const timeAgo = getTimeAgo(conv.timestamp);
+                item.innerHTML = `
+                    <div class="conversation-info">
+                        <div class="conversation-title" ondblclick="renameConversation(event, '${conv.id}')" title="Double-click to rename">${conv.title}</div>
+                        <div class="conversation-time">${timeAgo}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteConversation(event, '${conv.id}')" title="Delete conversation">×</button>
+                `;
+                conversationsList.appendChild(item);
+            });
+        }
+        
+        function updateCharCount() {
+            const input = document.getElementById('message-input');
+            const charCount = document.getElementById('char-count');
+            const count = input.value.length;
+            charCount.textContent = `${count} chars`;
+            
+            if (count > 1000) {
+                charCount.style.color = '#ff6b6b';
+            } else if (count > 500) {
+                charCount.style.color = '#ffa726';
+            } else {
+                charCount.style.color = isLightTheme ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+            }
+        }
+        
+        function exportConversations() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                conversations: conversations.map(conv => ({
+                    ...conv,
+                    timestamp: conv.timestamp.toISOString()
+                }))
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pantheon-conversations-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Conversations exported successfully!');
+        }
+        
+        function renameConversation(event, chatId) {
+            event.stopPropagation();
+            const conversation = conversations.find(c => c.id === chatId);
+            if (!conversation) return;
+            
+            const newTitle = prompt('Rename conversation:', conversation.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                conversation.title = newTitle.trim();
+                saveConversations();
+                renderConversations();
+                if (currentChatId === chatId) {
+                    document.getElementById('chat-title').textContent = newTitle.trim();
+                }
+                showToast('Conversation renamed!');
+            }
+        }
+        
+        function formatTimestamp(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / (1000 * 60));
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (minutes < 1) return 'now';
+            if (minutes < 60) return `${minutes}m`;
+            if (hours < 24) return `${hours}h`;
+            if (days < 7) return `${days}d`;
+            return date.toLocaleDateString();
+        }
+        
+        function showShortcuts() {
+            document.getElementById('shortcuts-overlay').style.display = 'flex';
+        }
+        
+        function hideShortcuts() {
+            document.getElementById('shortcuts-overlay').style.display = 'none';
+        }
+        
+        async function saveToGitHub() {
+            if (!GITHUB_CONFIG.token) {
+                console.log('GitHub token not configured');
+                return;
+            }
+            
+            try {
+                updateSyncStatus('pending');
+                
+                // Get current file SHA (if it exists)
+                const { owner, repo, token, filePath } = GITHUB_CONFIG;
+                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+                
+                let sha = null;
+                try {
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        sha = data.sha;
+                    }
+                } catch (e) {
+                    // File doesn't exist yet, that's okay
+                }
+                
+                // Prepare data
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    conversations: conversations.map(conv => ({
+                        ...conv,
+                        timestamp: conv.timestamp.toISOString()
+                    }))
+                };
+                
+                const content = btoa(JSON.stringify(exportData, null, 2));
+                
+                // Upload to GitHub
+                const uploadResponse = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Update conversations - ${new Date().toISOString()}`,
+                        content: content,
+                        ...(sha && { sha })
+                    })
+                });
+                
+                if (uploadResponse.ok) {
+                    pendingSync = false;
+                    updateSyncStatus('synced');
+                } else {
+                    throw new Error('Failed to upload to GitHub');
+                }
+                
+            } catch (error) {
+                console.error('GitHub sync failed:', error);
+                pendingSync = true;
+                updateSyncStatus('failed');
+            }
+        }
+        
+        async function loadFromGitHub() {
+            if (!GITHUB_CONFIG.token) {
+                return false;
+            }
+            
+            try {
+                const { owner, repo, token, filePath } = GITHUB_CONFIG;
+                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+                
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = JSON.parse(atob(data.content));
+                    
+                    if (content.conversations) {
+                        conversations = content.conversations.map(conv => ({
+                            ...conv,
+                            timestamp: new Date(conv.timestamp)
+                        }));
+                        
+                        // Also update localStorage
+                        localStorage.setItem('ai-pantheon-conversations', JSON.stringify(conversations));
+                        updateSyncStatus('synced');
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load from GitHub:', error);
+                updateSyncStatus('failed');
+            }
+            return false;
+        }
+        
+        function updateSyncStatus(status) {
+            const statusElement = document.getElementById('sync-status');
+            if (!statusElement) return;
+            
+            statusElement.className = `sync-status ${status}`;
+            switch (status) {
+                case 'synced':
+                    statusElement.innerHTML = '☁️ Synced';
+                    statusElement.title = 'Conversations synced to GitHub';
+                    break;
+                case 'pending':
+                    statusElement.innerHTML = '⏳ Syncing...';
+                    statusElement.title = 'Syncing to GitHub...';
+                    break;
+                case 'failed':
+                    statusElement.innerHTML = '⚠️ Offline';
+                    statusElement.title = 'Using local storage only';
+                    break;
+                case 'offline':
+                    statusElement.innerHTML = '📱 Local';
+                    statusElement.title = 'GitHub not configured, using local storage';
+                    break;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            initSampleConversations();
+        });
+        
+        // Listen for online/offline events
+        window.addEventListener('online', function() {
+            isOnline = true;
+            if (pendingSync) {
+                saveToGitHub();
+            }
+        });
+        
+        window.addEventListener('offline', function() {
+            isOnline = false;
+            updateSyncStatus('offline');
+        });
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                startNewChat();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                e.preventDefault();
+                const input = document.getElementById('message-input');
+                if (input) input.focus();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === '?') {
+                e.preventDefault();
+                showShortcuts();
+            }
+            if (e.key === 'Escape') {
+                hideShortcuts();
+            }
+        });
+    </script>
+</body>
+</html>
