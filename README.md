@@ -12,33 +12,6 @@ A stunning, ultra-modern AI chat interface with glassmorphism design and advance
 - **Keyboard shortcuts** for power users
 - **Sample conversations** included for demonstration
 
-## 🌐 Deploy to GitHub Pages
-
-### Step 1: Create Repository
-1. Go to [GitHub.com](https://github.com) and sign in
-2. Click the green **"New"** button
-3. Name your repository: `ai-pantheon` (or whatever you prefer)
-4. Make it **Public**
-5. Check **"Add a README file"**
-6. Click **"Create repository"**
-
-### Step 2: Upload Your Files
-1. Click **"uploading an existing file"** or drag and drop
-2. Upload the `index.html` file from your Desktop/AI-Pantheon folder
-3. Commit the file
-
-### Step 3: Enable GitHub Pages
-1. Go to **Settings** tab in your repository
-2. Scroll down to **"Pages"** in the left sidebar
-3. Under **"Source"**, select **"Deploy from a branch"**
-4. Choose **"main"** branch and **"/ (root)"**
-5. Click **"Save"**
-
-### Step 4: Access Your Live Site
-- Your site will be live at: `https://yourusername.github.io/repository-name`
-- It takes 2-5 minutes to deploy
-- You'll see a green checkmark when ready
-
 ## 🎨 Customization Options
 
 ### Colors & Theme
