@@ -299,6 +299,29 @@
         let currentChatId = null;
         let messageId = 0;
 
+        function saveConversations() {
+            localStorage.setItem('conversations', JSON.stringify(conversations));
+            if (currentChatId) {
+                localStorage.setItem('currentChatId', currentChatId);
+            } else {
+                localStorage.removeItem('currentChatId');
+            }
+        }
+
+        function loadConversationsFromStorage() {
+            const stored = localStorage.getItem('conversations');
+            if (stored) {
+                try {
+                    conversations = JSON.parse(stored);
+                    currentChatId = localStorage.getItem('currentChatId');
+                    return true;
+                } catch (e) {
+                    console.error('Failed to load conversations', e);
+                }
+            }
+            return false;
+        }
+
         function initSampleConversations() {
             const sampleConversations = [
                 {
@@ -368,6 +391,7 @@
             document.getElementById('chat-title').textContent = 'New Conversation';
             clearMessages();
             renderConversations();
+            saveConversations();
         }
 
         function loadConversation(chatId) {
@@ -377,6 +401,7 @@
                 document.getElementById('chat-title').textContent = conversation.title;
                 renderMessages(conversation.messages);
                 renderConversations();
+                saveConversations();
             }
         }
 
@@ -385,6 +410,7 @@
             conversations = conversations.filter(c => c.id !== chatId);
             if (currentChatId === chatId) startNewChat();
             renderConversations();
+            saveConversations();
         }
 
         function clearAllChats() {
@@ -392,6 +418,7 @@
                 conversations = [];
                 startNewChat();
                 renderConversations();
+                saveConversations();
             }
         }
 
@@ -435,6 +462,7 @@
                 conversations.unshift(newConversation);
                 currentChatId = newChatId;
                 document.getElementById('chat-title').textContent = title;
+                saveConversations();
             }
 
             const currentConv = conversations.find(c => c.id === currentChatId);
@@ -448,6 +476,7 @@
             autoResize();
             renderMessages(currentConv.messages);
             renderConversations();
+            saveConversations();
             showTypingIndicator();
 
             setTimeout(() => {
@@ -468,6 +497,7 @@
                 });
                 renderMessages(currentConv.messages);
                 renderConversations();
+                saveConversations();
             }, 1500 + Math.random() * 1000);
         }
 
@@ -516,7 +546,17 @@
             setTimeout(() => modelInfo.style.color = '', 1000);
         }
 
-        document.addEventListener('DOMContentLoaded', initSampleConversations);
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!loadConversationsFromStorage()) {
+                initSampleConversations();
+            } else {
+                if (currentChatId) {
+                    loadConversation(currentChatId);
+                } else {
+                    startNewChat();
+                }
+            }
+        });
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();

@@ -11,6 +11,7 @@ A stunning, ultra-modern AI chat interface with glassmorphism design and advance
 - **Responsive design** that works perfectly on all devices
 - **Keyboard shortcuts** for power users
 - **Sample conversations** included for demonstration
+- **Conversations persist across reloads** using local storage
 
 ## 🎨 Customization Options
 
@@ -69,6 +70,7 @@ To connect real AI APIs:
 3. Watch the typing animation
 4. Test different AI models
 5. Create and delete conversations
+6. Reload the page to see your chats saved
 
 ## 🌟 Advanced Features
 
